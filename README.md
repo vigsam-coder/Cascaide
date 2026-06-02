@@ -41,14 +41,31 @@ The dataset loader expects this directory structure:
     - ...
 ## Quick start
 
-### 1. Train
+### 1. Preprocess (optional but recommended)
+
+Convert the LAMMPS dump files into a compact `.npz` cache so that training
+does not depend on OVITO and does not re-parse dump files every epoch:
+
+```bash
+python -m cascaide.data.preprocess --data_root <path/to/data_root>
+```
+
+This writes a `{cascade_id}.npz` next to each `*_min_vac.dump` /
+`*_min_sia.dump` pair (containing the vacancy/SIA coordinates, energy, and
+per-cascade local centroid + scale) and a top-level
+`<data_root>/.cache/manifest.json` carrying the dataset-wide global centroid
+and a summary entry for every cascade. The pass is idempotent — re-running
+reuses existing `.npz` files; pass `--force` to rebuild them. `CascadeDataset`
+detects the manifest automatically and skips OVITO entirely when it is present.
+
+### 2. Train
 
 ```bash
 python cascaide/training/train.py --config cascaide/configs/config.yaml
 
 ```
 
-### 2. Inference
+### 3. Inference
 
 ```bash
 python infer.py --config cascaide/configs/config.yaml --checkpoint runs/hilbert4ch_v1/checkpoints/best.pt --output_dir runs/hilbert4ch_v1/figures_best
